@@ -267,10 +267,17 @@ if __name__ == '__main__':
     #展示相邻词
     # DataPreProcessAndWord2VecTrain.use_word2vec_model()
 
+    model = Word2Vec.load('Data/wiki_han_word2vec_300维度.model')
+
     def analogy(x1,x2,y1):
-        model = Word2Vec.load('wiki_han_word2vec.model')
-        result = model.most_similar(positive = [y1,x2],negative = [x1])
+        result = model.wv.most_similar(positive = [y1,x2],negative = [x1])
         return result[0][0]
 
     print(analogy("中国","汉语","美国"))
     print(analogy("美国", "奥巴马", "日本"))
+
+    print(model.wv.most_similar(positive = '勇敢'))
+    print(model.wv.most_similar(positive = '美女'))
+    print(model.wv.most_similar('勇敢'))
+    print(model.wv.most_similar('美女'))
+
