@@ -32,11 +32,25 @@ class Summarizor:
         similarities = [(similarity.cosine_similarity(senVec, contentVec), index) for index, senVec in enumerate(sentencesVec)]
         similarities2 = [(similarity.cosine_similarity(senVec, sentencesVec[0]), index) for index, senVec in enumerate(sentencesVec)]
         similarities = [ ((sim1[0] * 0.382 + sim2[0] * 0.618) / 2, sim1[1]) for sim1, sim2 in zip(similarities, similarities2)]
-        # 相似度平滑 KNN
-        # ？？？
+
+        # 加入KNN平滑，控制为前后一句话，共计3
+        similaritiesKnn = []
+        for count, turple in enumerate(similarities):
+            if count == 0:
+                sentenceVec = (similarities[count][0] + similarities[count + 1][0] + similarities[count + 2][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
+            elif count == len(similarities) - 1:
+                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count - 2][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
+            else:
+                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count + 1][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
 
         # 排序
-        similarities.sort(reverse=True)
+        similaritiesKnn.sort(reverse=True)
         print("similarities:")
         for sim in similarities:
             print(sim)
