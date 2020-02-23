@@ -13,7 +13,7 @@ class Summarizor:
         print('句子切分：')
         contents = ["".join([a, b]) if b != '\n' and b != '\t' else a + "。"
                     for a, b in zip(contents[0::2], contents[1::2])]
-        contents = [content for content in contents if content.strip() != '' and content != '。']
+        contents = [content for content in contents if content.strip() != '' and content[0] != '。']
         for i, sen in enumerate(contents):
             print(i, sen)
         return contents
@@ -23,9 +23,9 @@ class Summarizor:
         neighborCount: 考虑左边和右边分别 neighborCount 的邻居的值
         neighborWeight: 最相邻的邻居的权重
         """
-        print("平滑前：")
-        for i, item in enumerate(similarities):
-            print(item[0])
+        # print("平滑前：")
+        # for i, item in enumerate(similarities):
+        #     print(item[0])
         targetSimilarities = similarities.copy()
         for i, item in enumerate(similarities):
             sumValue = 0
@@ -37,9 +37,9 @@ class Summarizor:
                 else:
                     continue
             targetSimilarities[i] = (sumValue, item[1])
-        print("平滑后：")
-        for i, item in enumerate(targetSimilarities):
-            print(item[0])
+        # print("平滑后：")
+        # for i, item in enumerate(targetSimilarities):
+        #     print(item[0])
         return targetSimilarities
 
 
@@ -64,14 +64,8 @@ class Summarizor:
         return similaritiesKnn
 
 
-    def summarize(self, content:str, title:str = None, splitChar = '(。|！|\!|\.|？|\?|\n|\t)', proportion = 0.3):
-        contents = re.split(splitChar, content)
-        print('句子切分：')
-        contents = ["".join([a, b]) if b != '\n' and b != '\t' else a + "。" \
-                    for a, b in zip(contents[0::2], contents[1::2])]
-        contents = [content for content in contents if content.strip() != '']
-        for i, sen in enumerate(contents):
-            print(i, sen)
+    def summarize(self, content:str, title:str = None, splitChar = '(。|！|\!|？|\?|\n|\t)', proportion = 0.3):
+        contents = self._splitText(content)
 
         # 获取标题向量
         if title != None :
@@ -88,13 +82,10 @@ class Summarizor:
         similarities2 = [(similarity.cosine_similarity(senVec, sentencesVec[0]), index) for index, senVec in enumerate(sentencesVec)]
         similarities = [ ((sim1[0] * 0.382 + sim2[0] * 0.618), sim1[1]) for sim1, sim2 in zip(similarities, similarities2)]
         # 相似度平滑 KNN
-        similarities = self._knnSmooth(similarities)
+        similarities = self._knnSmooth2(similarities)
 
         # 排序
         similarities.sort(reverse=True)
-        print("similarities:")
-        for sim in similarities:
-            print(sim)
 
         summarySentenceIndexes = similarities[0: int(len(similarities) * proportion)]
         print("summarySentenceIndexes:")
@@ -111,7 +102,7 @@ if __name__ == "__main__":
     with open('Data/testArticle3.txt', 'r', encoding='utf-8') as testFile:
         test_content = testFile.read()
     summarizor = Summarizor()
-    summarySentences = summarizor.summarize(test_content, splitChar='(。|！|\!|？|\?|\n|\t)', proportion = 0.1)
+    summarySentences = summarizor.summarize(test_content, proportion = 0.1)
 
     print("摘要：", "".join(summarySentences), "\n---------------------------------------------------")
     for i, sentence in enumerate(summarySentences):
