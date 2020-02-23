@@ -1,3 +1,4 @@
+import math
 import SIF
 import similarity
 import re
@@ -6,6 +7,62 @@ import re
 class Summarizor:
     def __init__(self, word2VecModelFilePath = 'Data/wiki_han_word2vec_300维度.model'):
         self.sif = SIF.SIF(word2VecModelFilePath)
+		
+    def _splitText(self, text:str, splitChar = '(。|！|\!|\.|？|\?|\n|\t)'):
+        contents = re.split(splitChar, text)
+        print('句子切分：')
+        contents = ["".join([a, b]) if b != '\n' and b != '\t' else a + "。"
+                    for a, b in zip(contents[0::2], contents[1::2])]
+        contents = [content for content in contents if content.strip() != '' and content != '。']
+        for i, sen in enumerate(contents):
+            print(i, sen)
+        return contents
+
+    def _knnSmooth(self, similarities, neighborCount = 1, neighborWeight = 0.3):
+        """
+        neighborCount: 考虑左边和右边分别 neighborCount 的邻居的值
+        neighborWeight: 最相邻的邻居的权重
+        """
+        print("平滑前：")
+        for i, item in enumerate(similarities):
+            print(item[0])
+        targetSimilarities = similarities.copy()
+        for i, item in enumerate(similarities):
+            sumValue = 0
+            for j in range(i - neighborCount, i + neighborCount):
+                if j == i:
+                    sumValue += item[0] * (1 - neighborWeight)
+                elif j >=0 and j < len(similarities):
+                    sumValue = (neighborWeight ** abs(j - i)) * similarities[j][0]
+                else:
+                    continue
+            targetSimilarities[i] = (sumValue, item[1])
+        print("平滑后：")
+        for i, item in enumerate(targetSimilarities):
+            print(item[0])
+        return targetSimilarities
+
+
+    def _knnSmooth2(self, similarities):
+        '''
+        加入KNN平滑，控制为前后一句话，共计3
+        '''
+        similaritiesKnn = []
+        for count, turple in enumerate(similarities):
+            if count == 0:
+                sentenceVec = (similarities[count][0] + similarities[count + 1][0] + similarities[count + 2][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
+            elif count == len(similarities) - 1:
+                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count - 2][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
+            else:
+                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count + 1][0]) / 3
+                contentVec = similarities[count][1]
+                similaritiesKnn.append((sentenceVec, contentVec))
+        return similaritiesKnn
+
 
     def summarize(self, content:str, title:str = None, splitChar = '(。|！|\!|\.|？|\?|\n|\t)', proportion = 0.3):
         contents = re.split(splitChar, content)
@@ -25,32 +82,16 @@ class Summarizor:
         sentencesVec = self.sif.getSentencesEmbedding(contents)
 
         sentencesVec = list(sentencesVec)
-        print(len(sentencesVec))
         contentVec = sentencesVec.pop()
-        print(len(sentencesVec))
 
         similarities = [(similarity.cosine_similarity(senVec, contentVec), index) for index, senVec in enumerate(sentencesVec)]
         similarities2 = [(similarity.cosine_similarity(senVec, sentencesVec[0]), index) for index, senVec in enumerate(sentencesVec)]
-        similarities = [ ((sim1[0] * 0.382 + sim2[0] * 0.618) / 2, sim1[1]) for sim1, sim2 in zip(similarities, similarities2)]
-
-        # 加入KNN平滑，控制为前后一句话，共计3
-        similaritiesKnn = []
-        for count, turple in enumerate(similarities):
-            if count == 0:
-                sentenceVec = (similarities[count][0] + similarities[count + 1][0] + similarities[count + 2][0]) / 3
-                contentVec = similarities[count][1]
-                similaritiesKnn.append((sentenceVec, contentVec))
-            elif count == len(similarities) - 1:
-                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count - 2][0]) / 3
-                contentVec = similarities[count][1]
-                similaritiesKnn.append((sentenceVec, contentVec))
-            else:
-                sentenceVec = (similarities[count][0] + similarities[count - 1][0] + similarities[count + 1][0]) / 3
-                contentVec = similarities[count][1]
-                similaritiesKnn.append((sentenceVec, contentVec))
+        similarities = [ ((sim1[0] * 0.382 + sim2[0] * 0.618), sim1[1]) for sim1, sim2 in zip(similarities, similarities2)]
+        # 相似度平滑 KNN
+        similarities = self._knnSmooth(similarities)
 
         # 排序
-        similaritiesKnn.sort(reverse=True)
+        similarities.sort(reverse=True)
         print("similarities:")
         for sim in similarities:
             print(sim)
