@@ -8,9 +8,9 @@ class Summarizor:
     def __init__(self, word2VecModelFilePath = 'Data/wiki_han_word2vec_300维度.model'):
         self.sif = SIF.SIF(word2VecModelFilePath)
 		
-    def _splitText(self, text:str, splitChar = '(。|！|\!|\.|？|\?|\n|\t)'):
+    def _splitText(self, text:str, splitChar = '(。|！|\!|？|\?|\n|\t)'):
         contents = re.split(splitChar, text)
-        print('句子切分：')
+        # print('句子切分分隔符：', splitChar)
         contents = ["".join([a, b]) if b != '\n' and b != '\t' else a + "。"
                     for a, b in zip(contents[0::2], contents[1::2])]
         contents = [content for content in contents if content.strip() != '' and content[0] != '。']
@@ -65,13 +65,21 @@ class Summarizor:
 
 
     def summarize(self, content:str, title:str = None, splitChar = '(。|！|\!|？|\?|\n|\t)', proportion = 0.3):
-        contents = self._splitText(content)
+        contents = self._splitText(content, splitChar=splitChar)
 
         # 获取标题向量
         if title != None :
+            title = title.strip()
+            if splitChar.find(title[len(title)-1]) == -1:
+                title += '。'
             contents.insert(0, title)
         # 获取文章向量
         contents.append(content)
+
+        # print(' len(contents)',  len(contents))
+        if len(contents) <= 4:
+            return contents
+
 
         sentencesVec = self.sif.getSentencesEmbedding(contents)
 
@@ -88,9 +96,9 @@ class Summarizor:
         similarities.sort(reverse=True)
 
         summarySentenceIndexes = similarities[0: int(len(similarities) * proportion)]
-        print("summarySentenceIndexes:")
-        for i, sim in enumerate(summarySentenceIndexes):
-            print(i, "index:", sim[1], sim, contents[sim[1]])
+        # print("summarySentenceIndexes:")
+        # for i, sim in enumerate(summarySentenceIndexes):
+        #     print(i, "index:", sim[1], sim, contents[sim[1]])
         summarySentences = [(index, contents[index]) for (cos, index) in summarySentenceIndexes ]
 
         summarySentences.sort()
@@ -104,7 +112,7 @@ if __name__ == "__main__":
     summarizor = Summarizor()
     summarySentences = summarizor.summarize(test_content, proportion = 0.1)
 
-    print("摘要：", "".join(summarySentences), "\n---------------------------------------------------")
+    # print("摘要：", "".join(summarySentences), "\n---------------------------------------------------")
     for i, sentence in enumerate(summarySentences):
         print(i, sentence)
 

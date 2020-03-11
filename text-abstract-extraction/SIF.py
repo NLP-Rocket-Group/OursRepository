@@ -13,16 +13,21 @@ import numpy as np
 from gensim.models.word2vec import Word2Vec
 from sklearn.decomposition import TruncatedSVD
 
+
 ##################################################################################################
 def getWordWeight(word2weight, a=1e-3):
-    if a <=0: # when the parameter makes no sense, use unweighted
+    if a <= 0:  # when the parameter makes no sense, use unweighted
         a = 1.0
-    try:
-        for key, value in word2weight.items():
+    # try:
+    for key, value in word2weight.items():
+        if isinstance(value, float):
+            continue
+        else:
             word2weight[key] = a / (a + value.count / value.sample_int)
-    except AttributeError as error:
-        print('##############',error, '##############', key)
+    # except AttributeError as error:
+    #     print('##############',error, '##############', key, "##############")
     return word2weight
+
 
 def getWeight(word_index_map, word2weight):
     weight4ind = {}
@@ -32,6 +37,7 @@ def getWeight(word_index_map, word2weight):
         else:
             weight4ind[ind] = 1.0
     return weight4ind
+
 
 def sentences2idx(sentences, words):
     """
@@ -46,6 +52,7 @@ def sentences2idx(sentences, words):
     x1, m1 = prepare_data(seq1)
     return x1, m1
 
+
 def getSeq(sentence, words):
     cutedWords = jieba.cut(sentence)
     indexes = []
@@ -57,16 +64,18 @@ def getSeq(sentence, words):
 
     return indexes
 
+
 def getIndex(words, w):
     w = w.lower()
     if len(w) > 1 and w[0] == '#':
-        w = w.replace("#","")
+        w = w.replace("#", "")
     if w in words:
         return words[w]
     elif 'UUUNKKK' in words:
         return words['UUUNKKK']
     else:
         return len(words) - 1
+
 
 def prepare_data(list_of_seqs):
     lengths = [len(s) for s in list_of_seqs]
@@ -80,12 +89,13 @@ def prepare_data(list_of_seqs):
     # x_mask = np.asarray(x_mask, dtype='float32')
     return x, x_mask
 
+
 def seq2weight(seq, mask, weight4ind):
     weight = np.zeros(seq.shape).astype('float32')
     for i in range(seq.shape[0]):
         for j in range(seq.shape[1]):
-            if mask[i,j] > 0 and seq[i,j] >= 0:
-                weight[i,j] = weight4ind[seq[i,j]]
+            if mask[i, j] > 0 and seq[i, j] >= 0:
+                weight[i, j] = weight4ind[seq[i, j]]
     # weight = np.asarray(weight, dtype='float32')
     return weight
 
@@ -114,6 +124,7 @@ def SIF_embedding(vectors, x, w, isRemovePC):
         emb = remove_pc(emb, isRemovePC)
     return emb
 
+
 def get_weighted_average(vectors, x, w):
     """
     Compute the weighted average vectors
@@ -125,8 +136,9 @@ def get_weighted_average(vectors, x, w):
     n_samples = x.shape[0]
     emb = np.zeros((n_samples, vectors.shape[1]))
     for i in range(n_samples):
-        emb[i,:] = w[i,:].dot(vectors[x[i,:],:]) / np.count_nonzero(w[i,:])
+        emb[i, :] = w[i, :].dot(vectors[x[i, :], :]) / np.count_nonzero(w[i, :])
     return emb
+
 
 def remove_pc(X, npc=1):
     """
@@ -136,13 +148,14 @@ def remove_pc(X, npc=1):
     :return: XX[i, :] is the data point after removing its projection
     """
     pc = compute_pc(X, npc)
-    if npc==1:
+    if npc == 1:
         XX = X - X.dot(pc.transpose()) * pc
     else:
         XX = X - X.dot(pc.transpose()).dot(pc)
     return XX
 
-def compute_pc(X,npc=1):
+
+def compute_pc(X, npc=1):
     """
     Compute the principal components. DO NOT MAKE THE DATA ZERO MEAN!
     :param X: X[i,:] is a data point
@@ -157,7 +170,7 @@ def compute_pc(X,npc=1):
 ##################################################################################################
 
 class SIF:
-    def __init__(self, word2VecModelFilePath = 'Data/wiki_han_word2vec_300维度.model', weightpara = 1e-3, isRemovePc = 1):
+    def __init__(self, word2VecModelFilePath='Data/wiki_han_word2vec_300维度.model', weightpara=1e-3, isRemovePc=1):
         self.weightpara = weightpara
         self.isRemovePc = isRemovePc
         self.model = Word2Vec.load(word2VecModelFilePath)
@@ -166,12 +179,14 @@ class SIF:
             self.word_index_map[word] = index
         self.vectors = self.model.wv.vectors
 
-    def getSentencesEmbedding(self, sentences = ['这是一个测试句子', '这是另一个测试句子']) -> list:
+    def getSentencesEmbedding(self, sentences=['这是一个测试句子', '这是另一个测试句子']) -> list:
         # load word weights
-        word2weight = getWordWeight(self.model.wv.vocab, self.weightpara)  # word2weight['str'] is the weight for the word 'str'
+        word2weight = getWordWeight(self.model.wv.vocab,
+                                    self.weightpara)  # word2weight['str'] is the weight for the word 'str'
         weight4index = getWeight(self.word_index_map, word2weight)  # weight4ind[i] is the weight for the i-th word
         # load sentences
-        x, m = sentences2idx(sentences, self.word_index_map)  # x is the array of word indices, m is the binary mask indicating whether there is a word in that location
+        x, m = sentences2idx(sentences,
+                             self.word_index_map)  # x is the array of word indices, m is the binary mask indicating whether there is a word in that location
         w = seq2weight(x, m, weight4index)  # get word weights
 
         return SIF_embedding(self.vectors, x, w, self.isRemovePc)
