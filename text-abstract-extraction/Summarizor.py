@@ -82,7 +82,7 @@ class Summarizor:
         similarities2 = [(similarity.cosine_similarity(senVec, sentencesVec[0]), index) for index, senVec in enumerate(sentencesVec)]
         similarities = [ ((sim1[0] * 0.382 + sim2[0] * 0.618), sim1[1]) for sim1, sim2 in zip(similarities, similarities2)]
         # 相似度平滑 KNN
-        similarities = self._knnSmooth2(similarities)
+        similarities = self._knnSmooth(similarities)
 
         # 排序
         similarities.sort(reverse=True)

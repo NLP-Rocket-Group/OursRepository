@@ -17,8 +17,11 @@ from sklearn.decomposition import TruncatedSVD
 def getWordWeight(word2weight, a=1e-3):
     if a <=0: # when the parameter makes no sense, use unweighted
         a = 1.0
-    for key, value in word2weight.items():
-        word2weight[key] = a / (a + value.count / value.sample_int)
+    try:
+        for key, value in word2weight.items():
+            word2weight[key] = a / (a + value.count / value.sample_int)
+    except AttributeError as error:
+        print('##############',error, '##############', key)
     return word2weight
 
 def getWeight(word_index_map, word2weight):
