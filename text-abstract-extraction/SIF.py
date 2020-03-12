@@ -9,6 +9,7 @@
 # 2） 计算句向量矩阵的第一个主成分 u，让每个句向量减去它在 u 上的投影（类似 PCA）；
 
 import jieba
+import thulac
 import numpy as np
 from gensim.models.word2vec import Word2Vec
 from sklearn.decomposition import TruncatedSVD
@@ -39,7 +40,7 @@ def getWeight(word_index_map, word2weight):
     return weight4ind
 
 
-def sentences2idx(sentences, words):
+def sentences2idx(sentences, words, splitWordFunc = jieba.cut):
     """
     Given a list of sentences, output array of word indices that can be fed into the algorithms.
     :param sentences: a list of sentences
@@ -48,13 +49,13 @@ def sentences2idx(sentences, words):
     """
     seq1 = []
     for sentence in sentences:
-        seq1.append(getSeq(sentence, words))
+        seq1.append(getSeq(sentence, words, splitWordFunc))
     x1, m1 = prepare_data(seq1)
     return x1, m1
 
 
-def getSeq(sentence, words):
-    cutedWords = jieba.cut(sentence)
+def getSeq(sentence, words, splitWordFunc = jieba.cut):
+    cutedWords = splitWordFunc(sentence)
     indexes = []
     try:
         for word in cutedWords:
@@ -170,7 +171,7 @@ def compute_pc(X, npc=1):
 ##################################################################################################
 
 class SIF:
-    def __init__(self, word2VecModelFilePath='Data/wiki_han_word2vec_300维度.model', weightpara=1e-3, isRemovePc=1):
+    def __init__(self, word2VecModelFilePath='Data/wiki_han_word2vec_300维度.model', weightpara=1e-3, isRemovePc=1, isUseThulac=True):
         self.weightpara = weightpara
         self.isRemovePc = isRemovePc
         self.model = Word2Vec.load(word2VecModelFilePath)
@@ -178,6 +179,9 @@ class SIF:
         for index, word in enumerate(self.model.wv.index2entity):
             self.word_index_map[word] = index
         self.vectors = self.model.wv.vectors
+        self.isUseThulac = isUseThulac
+        if isUseThulac == True:
+            self._thulac = thulac.thulac(seg_only=True)
 
     def getSentencesEmbedding(self, sentences=['这是一个测试句子', '这是另一个测试句子']) -> list:
         # load word weights
@@ -185,12 +189,16 @@ class SIF:
                                     self.weightpara)  # word2weight['str'] is the weight for the word 'str'
         weight4index = getWeight(self.word_index_map, word2weight)  # weight4ind[i] is the weight for the i-th word
         # load sentences
+        # x is the array of word indices, m is the binary mask indicating whether there is a word in that location
         x, m = sentences2idx(sentences,
-                             self.word_index_map)  # x is the array of word indices, m is the binary mask indicating whether there is a word in that location
+                             self.word_index_map,
+                             self.thulacCutWord if self.isUseThulac == True else jieba.cut)
         w = seq2weight(x, m, weight4index)  # get word weights
 
         return SIF_embedding(self.vectors, x, w, self.isRemovePc)
 
+    def thulacCutWord(self, sentence):
+        return np.array(self._thulac.cut(sentence))[:, 0]
 
 if __name__ == "__main__":
     sif = SIF()
