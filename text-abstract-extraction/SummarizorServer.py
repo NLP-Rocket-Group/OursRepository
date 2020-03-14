@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import json
 
 from Summarizor import Summarizor
@@ -17,21 +17,25 @@ def kill():
     return json.dumps({'message': 'kill_success'})
 
 
-@app.route('/get_summary', methods=['GET'])
+@app.route('/get_summary', methods=['GET', 'POST'])
 def get_summary():
     title = request.args.get('tt')
     content = request.args.get('ctt')
     proportion = request.args.get('ppt')
     print("收到消息：", 'tt', title, 'ppt', proportion, 'ctt', content)
-    summarySentences = summarizor.summarize(content, title, proportion=float(proportion))
-    res = "".join(summarySentences)
-    print('生成摘要：', res, "\n---------------------------------------------------")
-    return res
+    if title != None and content != None and proportion != None:
+        summarySentences = summarizor.summarize(content, title, proportion=float(proportion))
+        res = "".join(summarySentences)
+        print('生成摘要：', res, "\n---------------------------------------------------")
+    else:
+        res = "您未正确按要求输入数据！"
+
+    return render_template("index.html", res = res)
 
 if __name__ == '__main__':
     summarizor = Summarizor()
 
-    app.run(port=9999)
+    app.run(port=9998)
 
     # 浏览器地址栏中输入进行测试：
 	# http://127.0.0.1:9999/get_summary?tt={}&ctt={}&ppt={}
