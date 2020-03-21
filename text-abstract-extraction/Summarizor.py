@@ -3,6 +3,8 @@ import SIF
 import similarity
 import re
 
+import matplotlib.pyplot as plt
+
 
 class Summarizor:
     def __init__(self, word2VecModelFilePath = 'Data/wiki_han_word2vec_300维度.model', isUseThulac=False):
@@ -18,14 +20,11 @@ class Summarizor:
             print(i, sen)
         return contents
 
-    def _knnSmooth(self, similarities, neighborCount = 1, neighborWeight = 0.3):
+    def _knnSmooth(self, similarities, neighborCount = 2, neighborWeight = 0.3):
         """
         neighborCount: 考虑左边和右边分别 neighborCount 的邻居的值
         neighborWeight: 最相邻的邻居的权重
         """
-        # print("平滑前：")
-        # for i, item in enumerate(similarities):
-        #     print(item[0])
         targetSimilarities = similarities.copy()
         for i, item in enumerate(similarities):
             sumValue = 0
@@ -33,13 +32,10 @@ class Summarizor:
                 if j == i:
                     sumValue += item[0] * (1 - neighborWeight)
                 elif j >=0 and j < len(similarities):
-                    sumValue = (neighborWeight ** abs(j - i)) * similarities[j][0]
+                    sumValue += (neighborWeight ** abs(j - i)) * similarities[j][0]
                 else:
                     continue
             targetSimilarities[i] = (sumValue, item[1])
-        # print("平滑后：")
-        # for i, item in enumerate(t        argetSimilarities):
-        #     print(item[0])
         return targetSimilarities
 
     def _knnSmooth2(self, similarities):
@@ -90,6 +86,9 @@ class Summarizor:
                          enumerate(sentencesVec)]
         similarities = [((sim1[0] * 0.382 + sim2[0] * 0.618), sim1[1]) for sim1, sim2 in
                         zip(similarities, similarities2)]
+
+        print(similarities)
+
         # 相似度平滑 KNN
         similarities = self._knnSmooth(similarities)
 
@@ -107,10 +106,70 @@ class Summarizor:
         return [sentence for (index, sentence) in summarySentences]
 
 
+def test_knn_smooth(summarizor):
+    similarities = [(0.7370109095712785, 0), (0.34836532155800604, 1), (0.3478655256794069, 2),
+                    (0.014326292089252804, 3), (0.1010459157763001, 4), (-0.1390882145985209, 5),
+                    (-0.2573073078472371, 6), (0.3034734091309009, 7), (0.3201305341975047, 8),
+                    (-0.44812694804317854, 9), (0.12420447440089126, 10), (-0.04876588555077619, 11),
+                    (0.0068727369456329235, 12), (0.2875155466828204, 13), (-0.24086154935082735, 14),
+                    (-0.44812694804317854, 15), (0.28600216513666105, 16), (0.09614878571763426, 17),
+                    (-0.12696816782366818, 18), (0.3448805327115334, 19), (-0.44812694804317854, 20),
+                    (-0.16269746955137127, 21), (-0.1297121444479023, 22)]
+    knnSimilarities = summarizor._knnSmooth2(similarities)
+    neighborCount, neighborWeight = 1, 0.1
+    knnSimilarities1 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 1, 0.2
+    knnSimilarities2 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 1, 0.3
+    knnSimilarities3 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.1
+    knnSimilarities4 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.2
+    knnSimilarities5 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.25
+    knnSimilarities6 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.3
+    knnSimilarities7 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.4
+    knnSimilarities8 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+    neighborCount, neighborWeight = 2, 0.5
+    knnSimilarities9 = summarizor._knnSmooth(similarities, neighborCount, neighborWeight)
+
+    fig = plt.figure(num=1, figsize=(15, 12), dpi=240)
+    plt.title('KNN Smooth')
+    plt.scatter(range(len(similarities)), [s[0] for s in similarities])
+    plt.plot([s[0] for s in similarities], label="Before Smooth")
+    plt.plot([s[0] for s in knnSimilarities], ls='-.', label="KnnMeansSmooth")
+    plt.plot([s[0] for s in knnSimilarities1], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (1, 0.1))
+    plt.plot([s[0] for s in knnSimilarities2], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (1, 0.2))
+    plt.plot([s[0] for s in knnSimilarities3], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (1, 0.3))
+    plt.plot([s[0] for s in knnSimilarities4], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.1))
+    plt.plot([s[0] for s in knnSimilarities5], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.2))
+    plt.plot([s[0] for s in knnSimilarities6], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.25))
+    plt.plot([s[0] for s in knnSimilarities7], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.3))
+    plt.plot([s[0] for s in knnSimilarities8], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.4))
+    plt.plot([s[0] for s in knnSimilarities9], ls=':',
+             label="WeightSmooth NC:%d,NW:%.2f" % (2, 0.5))
+    plt.xlabel('sentence index')
+    plt.ylabel('Similary value')
+    plt.legend()
+    plt.show()
+
 if __name__ == "__main__":
+    summarizor = Summarizor(word2VecModelFilePath='Data/word2vect_50_w5.model', isUseThulac=True)
+
+    test_knn_smooth(summarizor)
+
     with open('Data/testArticle.txt', 'r', encoding='utf-8') as testFile:
         test_content = testFile.read()
-    summarizor = Summarizor(word2VecModelFilePath='Data/word2vect_50_w5.model', isUseThulac=True)
     summarySentences = summarizor.summarize(test_content, proportion = 0.3)
 
     # print("摘要：", "".join(summarySentences), "\n---------------------------------------------------")
