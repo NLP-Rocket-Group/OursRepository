@@ -7,9 +7,17 @@ from Summarizor import Summarizor
 app = Flask(__name__)
 #CORS(app, supports_credentials=True)
 
+# 跨域支持
+def after_request(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+app.after_request(after_request)
+
 @app.route('/start', methods=['GET'])
 def start():
-    return json.dumps({'message是 是是': 'start_success 操'})
+    res = "展示区域"
+    return render_template("index.html",res = res)
 
 
 @app.route('/kill', methods=['POST'])
@@ -30,12 +38,13 @@ def get_summary():
     else:
         res = "您未正确按要求输入数据！"
 
-    return render_template("index.html", res = res)
+    return res
+    # return render_template("index.html",  tt = title, ctt = content, ppt =proportion, res = res)
 
 if __name__ == '__main__':
     summarizor = Summarizor()
 
-    app.run(port=9998)
+    app.run(port=9999)
 
     # 浏览器地址栏中输入进行测试：
 	# http://127.0.0.1:9999/get_summary?tt={}&ctt={}&ppt={}
