@@ -1,1 +1,9 @@
 放置文本摘要项目的代码和说明文档
+
+1.DataPreProcessAndWord2vecTrain，数据预处理和词向量的训练
+2.SIF，句子向量化
+3.similarity，余弦相似度计算
+4.Summarizor，句子向量和全局向量比较，knn平滑，生成摘要
+5.SummarizorServer，项目后端，Flask
+6.template，html文件
+7.static，css和js文件

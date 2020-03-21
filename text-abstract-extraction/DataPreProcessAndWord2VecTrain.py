@@ -207,6 +207,18 @@ def update_word2vec(data_path,model_path):
             model.save('wiki_han_word2vec.model')
             time = time + 1
             print("成功训练{}次模型".format(time))
+        #处理最后一个批次的训练数据
+        elif count == len(sentences) - 1:
+            print("载入最后一次数据")
+            model = Word2Vec.load(model_path)
+            model.build_vocab(input_sentences, update=True) #更新词汇表
+            # epoch=iter语料库的迭代次数；（默认为5）  total_examples:句子数。
+            model.train(input_sentences, total_examples=model.corpus_count, epochs=model.iter)
+            input_sentences = []
+            model.save('wiki_han_word2vec.model')
+            time = time + 1
+            print("成功训练{}次模型".format(time))
+
 
 
 def use_word2vec_model():
