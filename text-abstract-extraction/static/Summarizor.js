@@ -23,6 +23,8 @@ function connect()
     document.getElementById("my-output").innerHTML=xmlhttp.responseText;
     }
 }
+
+jQuery.support.cors = true;
 xmlhttp.open("GET","http://127.0.0.1:9999/get_summary?"+str,true);
 xmlhttp.send();
 
