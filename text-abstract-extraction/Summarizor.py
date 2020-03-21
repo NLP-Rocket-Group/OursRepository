@@ -20,7 +20,7 @@ class Summarizor:
             print(i, sen)
         return contents
 
-    def _knnSmooth(self, similarities, neighborCount = 2, neighborWeight = 0.3):
+    def _knnSmooth(self, similarities, neighborCount = 2, neighborWeight = 0.25):
         """
         neighborCount: 考虑左边和右边分别 neighborCount 的邻居的值
         neighborWeight: 最相邻的邻居的权重
