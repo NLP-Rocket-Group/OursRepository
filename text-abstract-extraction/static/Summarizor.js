@@ -1,8 +1,14 @@
 function connect()
 {
   var tt = document.getElementById("my-title").value;
+  if(tt =="") {
+    tt = "摘要如下";
+  }
   var ctt = document.getElementById("my-input").value;
   var ppt = document.getElementById("my-proportion").value;
+    if(ppt == "") {
+    ppt = "0.3";
+  }
   var str = "tt="+tt+"&ctt="+ctt+"&ppt="+ppt;
   var xmlhttp;
 
@@ -24,8 +30,7 @@ function connect()
     }
 }
 
-jQuery.support.cors = true;
-xmlhttp.open("GET","http://127.0.0.1:9999/get_summary?"+str,true);
+xmlhttp.open("GET","get_summary?"+str,true);
 xmlhttp.send();
 
 
