@@ -1,3 +1,5 @@
 /text-abstract-extraction/.idea
 
 /text-abstract-extraction/__
+text-abstract-extraction/__pycache__/
+.idea/
