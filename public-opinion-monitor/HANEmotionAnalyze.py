@@ -18,7 +18,7 @@ class SelfAttention(nn.Module):
 class HAN(nn.Module):
     def __init__(self, num_embeddings = 5845,
                  num_classes = 10,
-                 num_words = 60,
+                 num_words = 100,
                  embedding_dim = 200,
                  hidden_size_gru = 50,
                  hidden_size_att = 100,
@@ -36,26 +36,36 @@ class HAN(nn.Module):
         self.self_attention1 = SelfAttention(hidden_size_gru * 2, hidden_size_att)
 
 
-        self.GRU2 = nn.GRU(hidden_size_gru,
+        self.GRU2 = nn.GRU(hidden_size_gru * 2,
                            hidden_size_gru,
                            bidirectional=True,  # 双向  Default: ``False``
                            batch_first=True,    # : If ``True``, then the input and output tensors are provided as (batch, seq, feature). Default: ``False``
                            )
         self.self_attention2 = SelfAttention(hidden_size_gru * 2, hidden_size_att)
 
-        self.fc = nn.Linear(hidden_size_att, num_classes)
+        # self.fc = nn.Linear(hidden_size_att, num_classes)
+        self.fc = nn.Linear(hidden_size_gru * 2, num_classes)
 
     def forward(self, x:torch.Tensor):
         # view() 说明：Returns a new tensor with the same data as the self tensor but of a different shape.
         # size() 说明：Returns the size of the self tensor. The returned value is a subclass of tuple.
         # contiguous() 说明： Returns a contiguous tensor containing the same data as self tensor. If self tensor is contiguous, this function returns the self tensor.
+        # print("x:", x.shape, self.num_words)
         x = x.view(x.size(0) * self.num_words, -1).contiguous()
+        # print("view 后 x:", x.shape)
         x = self.embed(x)
+        # print("embed 后 x:", x.shape)
         x, _ = self.GRU1(x)
+        # print("GRU1 后 x:", x.shape)
         x = self.self_attention1(x)
+        # print("self_attention1 后 x:", x.shape)
         x = x.view(x.size(0) // self.num_words, self.num_words, -1)
+        # print("view2 后 x:", x.shape)
         x, _ = self.GRU2(x)
+        # print("GRU2 后 x:", x.shape)
         x = self.self_attention2(x)
+        # print("self_attention2 后 x:", x.shape)
         x = self.fc(x)
+        # print("fc 后 x:", x.shape)
         return F.softmax(x, dim=1)
 
