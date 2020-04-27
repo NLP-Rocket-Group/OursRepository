@@ -1,27 +1,18 @@
 from HANModel import *
 import torch
-import torch.nn as nn
-from torch.optim.optimizer import Optimizer
 import numpy
-import time, math
-import torch.utils.data as data
-import os
-import pandas as pd
-import json
 import thulac
 thulac = thulac.thulac()
 import jieba
 
 from gensim.models import KeyedVectors, Word2Vec
 
-def init():
+def init(wordVecFilePath = '../../DataSets/Word2Vect/xiejunjie_300_jieba/wiki_han_word2vec_300维度.model'):
     '''
     初始化
-    :return:
     '''
     # 加载词向量
-    file = '../../DataSets/Word2Vect/xiejunjie_300_jieba/wiki_han_word2vec_300维度.model'
-    word2vec = Word2Vec.load(file)
+    word2vec = Word2Vec.load(wordVecFilePath)
     word2vec.init_sims(replace=True)
 
     wordEmbedding = [word2vec.wv[word]  for word in word2vec.wv.index2word]
