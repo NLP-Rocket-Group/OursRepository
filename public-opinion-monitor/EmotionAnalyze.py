@@ -7,23 +7,25 @@ import jieba
 
 from gensim.models import KeyedVectors, Word2Vec
 
-def init(wordVecFilePath = '../../DataSets/Word2Vect/xiejunjie_300_jieba/wiki_han_word2vec_300维度.model'):
+# def init(wordVecFilePath = '../../DataSets/Word2Vect/xiejunjie_300_jieba/wiki_han_word2vec_300维度.model'):
+def init(wordVecFilePath = '../../DataSets/Word2Vect/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding_Min.txt'):
     '''
     初始化
     '''
     # 加载词向量
-    word2vec = Word2Vec.load(wordVecFilePath)
+    # word2vec = Word2Vec.load(wordVecFilePath).wv
+    word2vec = KeyedVectors.load_word2vec_format(wordVecFilePath, binary=False, limit=100000)
     word2vec.init_sims(replace=True)
 
-    wordEmbedding = [word2vec.wv[word]  for word in word2vec.wv.index2word]
-    word2index = { word:i for i, word in enumerate(word2vec.wv.index2word)}
+    wordEmbedding = [word2vec[word] for word in word2vec.index2word]
+    word2index = {word:i for i, word in enumerate(word2vec.index2word)}
 
     # 创建模型
     wordEmbedding = torch.FloatTensor(wordEmbedding)
-    num_embeddings = len(word2vec.wv.index2word)
+    num_embeddings = len(word2vec.index2word)
     model = HAN(num_embeddings,
                 num_classes=3,
-                embedding_dim=word2vec.wv.vector_size,
+                embedding_dim=word2vec.vector_size,
                 num_words=100,
                 hidden_size_gru=300,
                 hidden_size_att=600,
