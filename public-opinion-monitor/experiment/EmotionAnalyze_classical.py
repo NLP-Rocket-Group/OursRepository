@@ -1,8 +1,8 @@
-from explore.HANModel import *
+from experiment.HANModel import *
 import torch
 import numpy
-# import thulac
-# thulac = thulac.thulac()
+import thulac
+thulac = thulac.thulac()
 import jieba
 from gensim.models import KeyedVectors
 
@@ -133,7 +133,8 @@ def init(wordVecFilePath = '../../DataSets/Word2Vect/Tencent_AILab_ChineseEmbedd
     model.embed.from_pretrained(wordEmbedding)
 
     # 载入模型数据
-    model.load_state_dict(torch.load('data/EmotionAnalyzeModelData_ClassicalHAN_OB.model', map_location=torch.device('cpu')))
+    # model.load_state_dict(torch.load('EmotionAnalyzeModelData_300_600.model', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load('data/EmotionAnalyzeModelData_ClassicalHAN_Test.model', map_location=torch.device('cpu')))
     model.eval()
     return model, word2index,
 
