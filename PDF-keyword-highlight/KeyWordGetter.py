@@ -1,17 +1,20 @@
 # coding:utf-8
 
 from textrank4zh import TextRank4Keyword
+from gensim.models import Word2Vec, KeyedVectors
 
 
 class KeywordGetter:
-    def __init__(self, stop_words_file = None):
+    def __init__(self, stop_words_file = None, wordVecFilePath = '../../DataSets/Word2Vect/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding_Min.txt'):
         '''
         关键词获取工具
         :param stop_words_file: 自定义关键词列表，未指定则使用默认的关键词列表
         '''
         self.tr4k = TextRank4Keyword(stop_words_file)
+        self.word2vec = KeyedVectors.load_word2vec_format(wordVecFilePath, binary=False)
+        self.word2vec.init_sims(replace=True)
 
-    def get(self, content: str, num=6, word_min_len=1, window = 2):
+    def get(self, content: str, num=6, word_min_len=1, window = 2, isContainsSimilarWord = True):
         '''
         获取关键字
         :param content: 文章
@@ -22,7 +25,21 @@ class KeywordGetter:
         '''
         self.tr4k.analyze(text=content, window = window)
         keywords = self.tr4k.get_keywords(num=num, word_min_len=word_min_len)
-        return keywords
+        keywords = [kw['word'] for kw in keywords]
+
+        if isContainsSimilarWord:
+            similarWords = []
+            words = set([kw['word'] for kw in self.tr4k.keywords])
+            for keyword in keywords:
+                if keyword in self.word2vec:
+                    sws = [sw for (sw, weight) in self.word2vec.similar_by_word(keyword)]
+                    sws = [sw for sw in sws if sw in words]
+                    similarWords += sws
+            keywords += similarWords
+        return set(keywords)
+
+
+
 
 
 if __name__ == "__main__":
@@ -119,15 +136,12 @@ if __name__ == "__main__":
         print(article)
         for win in range(2, 8):
             keywords = keywordGetter.get(article, num = 20, window=win)
-            keywords = [kw['word'] for kw in keywords]
             print(i," window =", win, " 关键词:", ", ".join(keywords))
         print()
         for win in range(2, 8):
             keywords = keywordGetter2.get(article, num = 20, window=win)
-            keywords = [kw['word'] for kw in keywords]
             print(i," window =", win, " 关键词:", ", ".join(keywords))
         print()
         for win in range(2, 8):
             keywords = keywordGetter2.get(article, num=20, window=win, word_min_len=2)
-            keywords = [kw['word'] for kw in keywords]
             print(i, " window =", win, " 关键词:", ", ".join(keywords))
