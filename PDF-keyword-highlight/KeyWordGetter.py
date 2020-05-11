@@ -5,9 +5,21 @@ from textrank4zh import TextRank4Keyword
 
 class KeywordGetter:
     def __init__(self, stop_words_file = None):
+        '''
+        关键词获取工具
+        :param stop_words_file: 自定义关键词列表，未指定则使用默认的关键词列表
+        '''
         self.tr4k = TextRank4Keyword(stop_words_file)
 
     def get(self, content: str, num=6, word_min_len=1, window = 2):
+        '''
+        获取关键字
+        :param content: 文章
+        :param num: 希望获取关键字的数量
+        :param word_min_len: 允许的关键字最大长度
+        :param window: textrank算法的超参数，移动窗口的大小 >=2
+        :return: 关键字列表
+        '''
         self.tr4k.analyze(text=content, window = window)
         keywords = self.tr4k.get_keywords(num=num, word_min_len=word_min_len)
         return keywords
@@ -114,3 +126,8 @@ if __name__ == "__main__":
             keywords = keywordGetter2.get(article, num = 20, window=win)
             keywords = [kw['word'] for kw in keywords]
             print(i," window =", win, " 关键词:", ", ".join(keywords))
+        print()
+        for win in range(2, 8):
+            keywords = keywordGetter2.get(article, num=20, window=win, word_min_len=2)
+            keywords = [kw['word'] for kw in keywords]
+            print(i, " window =", win, " 关键词:", ", ".join(keywords))
