@@ -3,3 +3,4 @@
 /text-abstract-extraction/__
 text-abstract-extraction/__pycache__/
 .idea/
+PDF-keyword-highlight/venv/*
