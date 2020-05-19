@@ -1,14 +1,10 @@
 # coding:utf-8
 
-def highLightTag(keyWordAddr, htmlAddr, outputAddr):
-    list = []
+def highLightTag(keyWords:[], htmlAddr, outputAddr, encoding='utf-8'):
     style = "<style> mark {background-color:#00ff90; font-weight:bold;}</style>"
-    for lines in open(keyWordAddr, 'r', encoding='UTF-8'):
-        list.extend(lines.split())
-
-    f2 = open(outputAddr, 'w', encoding='utf-8')
-    for pdf_html_line in open(htmlAddr, 'r', encoding='UTF-8'):
-        for keyWord in list:
+    f2 = open(outputAddr, 'w', encoding=encoding)
+    for pdf_html_line in open(htmlAddr, 'r', encoding=encoding):
+        for keyWord in keyWords:
             if pdf_html_line.find("<meta") != -1:
                 f2.write(style)
             if pdf_html_line.find(keyWord) != -1:
@@ -20,11 +16,10 @@ def highLightTag(keyWordAddr, htmlAddr, outputAddr):
 
 
 if __name__ == '__main__':
-    keyWordAddr = r'.\Datas\keyWord.txt'
-    htmlAddr = r'.\Datas\test.html'
-    outputAddr = r'.\Datas\test2.html'
+    htmlAddr = r'.\Datas\如何才能摆脱贫穷？穷人和富人有什么差别？.txt'
+    outputAddr = r'.\Datas\如何才能摆脱贫穷？穷人和富人有什么差别？HighLight.html'
 
-    highLightTag(keyWordAddr, htmlAddr, outputAddr)
+    highLightTag(["富人", "穷人"], htmlAddr, outputAddr, encoding='gbk')
 
 
 

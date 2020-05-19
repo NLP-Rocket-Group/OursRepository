@@ -55,8 +55,8 @@ def parse(DataIO, save_path):
 
 if __name__ == '__main__':
     # 解析本地PDF文本，保存到本地TXT
-    with open(r'E:\parse_pdf\3.pdf', 'rb') as pdf_html:
-        parse(pdf_html, r'E:\parse_pdf\d.txt')
+    with open(r'Datas/如何才能摆脱贫穷？穷人和富人有什么差别？.pdf', 'rb') as pdf_html:
+        parse(pdf_html, r'Datas/如何才能摆脱贫穷？穷人和富人有什么差别？.html')
 
     # 解析网络上的PDF，保存文本到本地
     # url = "https:"
