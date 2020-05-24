@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from sklearn import metrics
 from sklearn.cluster import MiniBatchKMeans
+# MiniBatchKMeans 适用于大样本，是KMeans的变种，使用前查查文档
 
 def clock(func):
     def clocked(*args, **kwargs):
@@ -16,21 +17,9 @@ def clock(func):
         return result
     return clocked
 
-"""获得文档中所有问句的向量，有些可能是空值，需要填上零矩阵"""
-@clock
-def get_all_vector():
-    r = []
-    with open('/Users/junjiexie/Downloads/data/sentence_to_vector', 'rb') as f:
-        sentence_to_vector = pickle.load(f)
-
-    for i in sentence_to_vector.values():
-        if str(i.shape) != "(13, 312)":
-            i = np.zeros((13, 312))
-        r.append(i)
-    return np.array(r).reshape(-1,1)
 
 
-"""寻找合适的聚类簇，这里运行速度太慢了，可能得数天。不建议用k-means做。可以考虑使用LDA主题模型对文档进行分类完成意图识别"""
+"""寻找合适的聚类簇，若k-means运行太慢。可以考虑使用LDA主题模型对文档进行分类完成意图识别"""
 @clock
 def run_Kmeans(data):
     score_list = []  # 储存系数的列表
@@ -53,8 +42,3 @@ def run_Kmeans(data):
 
 
 
-if __name__ == '__main__':
-    data = get_all_vector()
-    # print(data[0:-1].shape)
-    # print(data.shape)
-    run_Kmeans(data)
