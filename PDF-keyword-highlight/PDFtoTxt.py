@@ -45,7 +45,7 @@ def parse(DataIO, save_path):
             for x in layout:
                 try:
                     if (isinstance(x, LTTextBoxHorizontal)):
-                        with open('%s' % (save_path), 'a') as f:
+                        with open('%s' % (save_path), 'a', encoding='utf-8') as f:
                             result = x.get_text()
                             print(result)
                             f.write(result + "\n")

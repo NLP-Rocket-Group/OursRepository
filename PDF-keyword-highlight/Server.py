@@ -10,8 +10,6 @@ from KeyWordGetter import *
 from HighLightHTML import *
 from PDFtoTxt import *
 
-print(json.dumps({"error": 1001, "msg": "类型：pdf"}))
-
 app = Flask(__name__)
 
 
@@ -20,12 +18,12 @@ keywordGetter = KeywordGetter()
 print("初始化完成！")
 
 
-def highlight_pdf2html(pdfPath, outputHtmlPath, encoding='gbk'):
+def highlight_pdf2html(pdfPath, outputHtmlPath, encoding='utf-8'):
     tempPath = "Datas/Temp.html"
     with open(pdfPath, 'rb') as pdf_html:
         parse(pdf_html, tempPath)
 
-    with open(tempPath, 'r') as pdf_html:
+    with open(tempPath, 'r', encoding='utf-8') as pdf_html:
         keywords = keywordGetter.get(pdf_html.read())
 
     highLightTag(keywords, tempPath, outputHtmlPath, encoding=encoding)
@@ -66,8 +64,11 @@ def upload():
         # print("secure_filename(f.filename)", secure_filename(f.filename))
         # 一定要先创建该文件夹，不然会提示没有该路径
         newFileName = str(random.randrange(0, 9))
-        upload_path = ''.join([basepath, '/UploadFiles/', newFileName, '.pdf'])
-        html_path = ''.join([basepath, '/UploadFiles/', newFileName, '.html'])
+        path = ''.join([basepath, '/UploadFiles/'])
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        upload_path = ''.join([path, newFileName, '.pdf'])
+        html_path = ''.join([path, newFileName, '.html'])
         print("upload_path", upload_path)
         # 保存文件
         f.save(upload_path)
