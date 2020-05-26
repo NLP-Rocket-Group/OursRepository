@@ -1,11 +1,12 @@
 # coding:utf-8
+import re
 
 from textrank4zh import TextRank4Keyword
 from gensim.models import Word2Vec, KeyedVectors
 
 
 class KeywordGetter:
-    def __init__(self, stop_words_file = None, wordVecFilePath = '../../DataSets/Word2Vect/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding_Min.txt'):
+    def __init__(self, stop_words_file = 'Datas/停用词表.txt', wordVecFilePath = '../../DataSets/Word2Vect/Tencent_AILab_ChineseEmbedding/Tencent_AILab_ChineseEmbedding_Min.txt'):
         '''
         关键词获取工具
         :param stop_words_file: 自定义关键词列表，未指定则使用默认的关键词列表
@@ -23,6 +24,7 @@ class KeywordGetter:
         :param window: textrank算法的超参数，移动窗口的大小 >=2
         :return: 关键字列表
         '''
+        content = self.filter(content)
         self.tr4k.analyze(text=content, window = window)
         keywords = self.tr4k.get_keywords(num=num, word_min_len=word_min_len)
         keywords = [kw['word'] for kw in keywords]
@@ -38,8 +40,8 @@ class KeywordGetter:
             keywords += similarWords
         return set(keywords)
 
-
-
+    def filter(self, content):
+        return '  '.join(re.findall('[\u4e00-\u9fa5]+', content))
 
 
 if __name__ == "__main__":

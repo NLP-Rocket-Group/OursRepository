@@ -16,4 +16,6 @@ def pdf_to_html(filename:str, pdfname:str):
 
 
 if __name__ == '__main__':
-    pdf_to_html(filename="/Users/junjiexie/Desktop/", pdfname="汇丰班学生测评表.pdf")
+    basepath = os.path.dirname(__file__)
+    pdf_to_html(filename = basepath + "/Datas/", pdfname="如何才能摆脱贫穷？穷人和富人有什么差别？.pdf")
+

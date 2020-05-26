@@ -1,6 +1,7 @@
 import math
 import os
 import random
+import time
 
 from flask import Flask, request, render_template
 import json
@@ -8,7 +9,8 @@ from werkzeug.utils import secure_filename
 
 from KeyWordGetter import *
 from HighLightHTML import *
-from PDFtoTxt import *
+from DockerPdfToHtml import *
+# from PDFtoTxt import *
 
 app = Flask(__name__)
 
@@ -19,9 +21,11 @@ print("初始化完成！")
 
 
 def highlight_pdf2html(pdfPath, outputHtmlPath, encoding='utf-8'):
-    tempPath = "Datas/Temp.html"
-    with open(pdfPath, 'rb') as pdf_html:
-        parse(pdf_html, tempPath)
+    basepath = os.path.dirname(pdfPath)
+    pdfFileName = os.path.basename(pdfPath)
+    fileName = str.rsplit(pdfFileName, '.', 1)[0]
+    tempPath = basepath + "/" + fileName + ".html"
+    pdf_to_html(basepath + "/", pdfFileName)
 
     with open(tempPath, 'r', encoding='utf-8') as pdf_html:
         keywords = keywordGetter.get(pdf_html.read())
@@ -29,7 +33,6 @@ def highlight_pdf2html(pdfPath, outputHtmlPath, encoding='utf-8'):
     highLightTag(keywords, tempPath, outputHtmlPath, encoding=encoding)
 
     os.remove(tempPath)
-
 
 @app.route('/')
 def index():
@@ -68,13 +71,13 @@ def upload():
         if not os.path.isdir(path):
             os.mkdir(path)
         upload_path = ''.join([path, newFileName, '.pdf'])
-        html_path = ''.join([path, newFileName, '.html'])
+        html_path = ''.join([path, newFileName, '_highLight.html'])
         print("upload_path", upload_path)
         # 保存文件
         f.save(upload_path)
 
         highlight_pdf2html(upload_path, html_path)
-
+        # time.sleep(3)
         with open(html_path, 'rb') as htmlFile:
             return htmlFile.read()
         # 返回上传成功界面
