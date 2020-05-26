@@ -28,15 +28,19 @@ model = SentenceTransformer(modules=[word_embedding_model, pooling_model])
 
 
 # Corpus with example sentences
-corpus = ['理财产品取号。',
-          '查询名下所有账户',
-          '现金取款。',
+corpus = ["咱俩谁跟谁呀",
+          "咱们谁和谁啊。",
+          "我给了她一只笔。",
+          '东京海洋大学',
           '个人账户管理。',
-          '其他信用卡业务。']
+          '其他信用卡业务。',
+          "咱俩关系很好",
+          "咱俩关系不错呀",
+          "咱俩关系不错呀"]
 
 corpus = corpus
 
-queries = ['我想知道卡里还有多少钱', '挂失操作']
+queries = ["咱俩谁跟谁呀", '我拿了一支笔给她。', "这是我看书的桌子。", "咱俩关系不错呀", "咱俩关系很好"]
 
 corpus_embeddings = model.encode(corpus)
 
@@ -51,7 +55,7 @@ query_embeddings = model.encode(queries)
 def run():
 
 
-    closest_n = 1
+    closest_n = 5
     for query, query_embedding in zip(queries, query_embeddings):
         distances = spatial.distance.cdist([query_embedding], corpus_embeddings, "cosine")[0]
 
